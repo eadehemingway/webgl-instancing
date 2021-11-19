@@ -18224,11 +18224,25 @@
 	    extensions: ["ANGLE_instanced_arrays"] // this makes the instancing work
 	});
 
+	const instances = 100000;
+	const buffer_color = [];
+	const buffer_offset = [];
+	const buffer_radius_scale = [];
 
+	for (var i = 0; i < instances; i ++){
+	    const col = [Math.random(), Math.random(), Math.random()];
+	    // we need the offset to be between -1 and 1 so we times by two and minus one
+	    const offset = [(Math.random()*2) -1, (Math.random()*2)-1];
+	    const rad = [Math.random()/100];
+
+	    buffer_color.push(col);
+	    buffer_offset.push(offset);
+	    buffer_radius_scale.push(rad);
+	}
 	const projection_matrix = mat4.create(); // this returns mat4 identity (i.e. it just returns the same thing it gets in)
 
 	const drawPoints = regl({
-	    instances: 2, // this says we want two instances (i.e. two circles)
+	    instances: instances, // this says we want two instances (i.e. two circles)
 	    count: 6, // amount of points we are going to draw.
 	    attributes: {
 	    // attributes can be called anything, but the options they take are all the same (they have buffer and divisor). If they dont have a divisor
@@ -18236,15 +18250,15 @@
 	        position: [[-1, -1], [1, -1], [1, 1], [1, 1], [-1, 1], [-1, -1]], // this is shorthand for doing an object with buffer without a divisor
 	        // (regular attributes have a divisor of zero, only instance attributes have a divisor of one)
 	        color: {
-	            buffer: [[1, 0, 0],[ 0, 0, 1]], // red and blue
+	            buffer: buffer_color, // red and blue
 	            divisor: 1 // this turns on instancing (i.e. use the following code as a template that will be called many times)
 	        },
 	        offset: {
-	            buffer: [[-1, 0], [1, 0]],
+	            buffer: buffer_offset,
 	            divisor: 1
 	        },
 	        radiusScale: {
-	            buffer: [0.25, 0.4],
+	            buffer: buffer_radius_scale,
 	            divisor: 1
 	        }
 	    },
@@ -18289,6 +18303,10 @@
         }
 
     `,
+	    depth: { // disable depth so that it works like photoshop might with layers. good to do with 2d stuff.
+	        enable: false,
+	        mask: false
+	    },
 	    blend:  { // this object is copied pasted, this sets up behaviour between
 	    // source and destination colors. it makes transparency possible
 	        enable: true,
