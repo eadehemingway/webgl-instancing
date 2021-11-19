@@ -91,19 +91,10 @@ const drawPoints = regl({
     `,
     frag: `
         precision mediump float;
-        varying vec2 v_position;
-        vec3 sienna = vec3(0.725, 0.345, 0.207);
         varying vec3 v_color;
 
         void main(){
-            // length(v_position) = length from origin
-            float length_from_origin = length(v_position);
-            float radius = 1.0; // this just says make the circle take up the whole quad (it doesnt say how big the circle will be in pixels as that is determined by the position of the quad corners)
-
-            float outside_circle = step(radius, length_from_origin); // return 1 if it is outside the circle
-            float inside_circle = 1.0 - outside_circle; // will return 1.0 if it is inside the circle
-            float alpha = inside_circle; // if point is inside circle we want alpha to be 1, if it is outside circle we want it to be zero (same as inside_circle)
-            gl_FragColor = vec4(v_color, alpha);
+            gl_FragColor = (vec4(v_color, 1.0));
 
         }
 
