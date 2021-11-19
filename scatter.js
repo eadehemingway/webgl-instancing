@@ -18222,6 +18222,7 @@
 
 	const regl = REGL({});
 
+
 	const projection_matrix = mat4.create(); // this returns mat4 identity (i.e. it just returns the same thing it gets in)
 
 	const drawPoints = regl({
@@ -18247,6 +18248,7 @@
 	    frag: `
         precision mediump float;
         varying vec2 v_position;
+        vec3 sienna = vec3(0.725, 0.345, 0.207);
 
         void main(){
             // length(v_position) = length from origin
@@ -18256,7 +18258,7 @@
             float outside_circle = step(radius, length_from_origin); // return 1 if it is outside the circle
             float inside_circle = 1.0 - outside_circle; // will return 1.0 if it is inside the circle
             float alpha = inside_circle; // if point is inside circle we want alpha to be 1, if it is outside circle we want it to be zero (same as inside_circle)
-            gl_FragColor = vec4(0.0, 0.0, inside_circle, alpha);
+            gl_FragColor = vec4(sienna, alpha);
 
         }
 
@@ -18279,8 +18281,8 @@
 	});
 
 	function render(){
-
-	    regl.clear({ color: [0.2, 0.5, 0.4, 1.0] });
+	    const green = [0.2, 0.5, 0.4, 1.0];
+	    regl.clear({ color: green });
 	    mat4.identity(projection_matrix); // this resets the matrix to the original mat4 identity matrix,
 	    // so if we need to update the transofmraiton (e.g. for screen resize) it will just do the right amount (cos its cummulative)
 	    mat4.scale(projection_matrix, projection_matrix, [0.5, 0.5, 1.0]); // projection_matrix is passed in twice because its both the matrix we are reading from and the one we are writing to
