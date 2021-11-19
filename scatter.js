@@ -18385,19 +18385,25 @@ float snoise(vec3 v)
 
         void main(){
             v_color = color;
-            // this says how broken up the noise is. The smaller this number the fewer bigger mountains there will be,
-            // the larger the number the more mountains they will be (and they will have more of a vertical drop)
+            // // this says how broken up the noise is. The smaller this number the fewer bigger mountains there will be,
+            // // the larger the number the more mountains they will be (and they will have more of a vertical drop)
             float noise_fragment = 100.0;
             vec2 noise_coordinate = offset * noise_fragment;
-            float noise_amplitude = snoise(vec3(noise_coordinate, u_time));
-            v_color = vec3( noise_amplitude * 0.5 + 0.5); //  * 0.5 + 0.5 this turns the numbers from (-1, 1) to (0, 1)
+            // float noise_amplitude = snoise(vec3(noise_coordinate, u_time));
+            // v_color = vec3( noise_amplitude * 0.5 + 0.5); //  * 0.5 + 0.5 this turns the numbers from (-1, 1) to (0, 1)
 
             v_position = position;
             vec2 offset_position = (position * radiusScale) + offset; // by timesing position by radius scale we pull in/out the corners of the square and therefore make circle bigger/smaller
-            // snoise returns a float
 
-            // offset_position.x += snoise(vec3(noise_coordinate, 0.0));
-            // offset_position.y += snoise(vec3(noise_coordinate, 0.0));
+            // snoise returns a float
+            float speed = 0.1;
+            // we are using time to access different slices of the 3d noise. We times by 0.1 to slow it down.
+            // That doesnt mean its a different slice of the circles becasue we are using this for x and y offset.
+            // essentially in this case we are using snoise to get random numbers to add to the x/y offsets
+            float noise_slice = u_time * speed;
+
+            offset_position.x += snoise(vec3(noise_coordinate, noise_slice));
+            offset_position.y += snoise(vec3(noise_coordinate, -noise_slice));
 
             gl_Position = vec4(offset_position, 0.0, 1.0);
             gl_Position = projection_matrix * gl_Position; // this is the gl position transformed by the mat4
