@@ -61,19 +61,24 @@ const drawPoints = regl({
         attribute float radiusScale;
         uniform float u_time;
 
+        ${require("./noise")}
 
         void main(){
             v_color = color;
+            // this says how broken up the noise is. The smaller this number the fewer bigger mountains there will be,
+            // the larger the number the more mountains they will be (and they will have more of a vertical drop)
+            float noise_fragment = 100.0;
+            vec2 noise_coordinate = offset * noise_fragment;
+            float noise_amplitude = snoise(vec3(noise_coordinate, u_time));
+            v_color = vec3( noise_amplitude * 0.5 + 0.5); //  * 0.5 + 0.5 this turns the numbers from (-1, 1) to (0, 1)
+
             v_position = position;
             vec2 offset_position = (position * radiusScale) + offset; // by timesing position by radius scale we pull in/out the corners of the square and therefore make circle bigger/smaller
-            // offset_position.x += sin(u_time + offset.y);
-            float angle = u_time + offset.y;
-            float radius = 0.1 * sin(u_time - offset.x);
-            float some_length = 0.1;
-            offset_position += vec2(
-                cos(angle) * some_length,
-                sin(angle) * some_length
-            );
+            // snoise returns a float
+
+            // offset_position.x += snoise(vec3(noise_coordinate, 0.0));
+            // offset_position.y += snoise(vec3(noise_coordinate, 0.0));
+
             gl_Position = vec4(offset_position, 0.0, 1.0);
             gl_Position = projection_matrix * gl_Position; // this is the gl position transformed by the mat4
         }
