@@ -18336,7 +18336,7 @@ float snoise(vec3 v)
 	for (var i = 0; i < instances; i ++){
 	    const col = [Math.random(), Math.random(), Math.random()];
 	    // we need the offset to be between -1 and 1 so we times by two and minus one
-	    const offset = [(Math.random()*2) -1, (Math.random()*2)-1];
+	    const offset = [(Math.random()*2) -1, (Math.random()*2)-1, (Math.random()*2)-1 ];
 	    const rad = [Math.random()/100];
 
 	    buffer_color.push(col);
@@ -18377,7 +18377,7 @@ float snoise(vec3 v)
         uniform mat4 projection_matrix;
         attribute vec3 color;
         varying vec3 v_color;
-        attribute vec2 offset;
+        attribute vec3 offset;
         attribute float radiusScale;
         uniform float u_time;
 
@@ -18388,24 +18388,22 @@ float snoise(vec3 v)
             // // this says how broken up the noise is. The smaller this number the fewer bigger mountains there will be,
             // // the larger the number the more mountains they will be (and they will have more of a vertical drop)
             float noise_fragment = 100.0;
-            vec2 noise_coordinate = offset * noise_fragment;
-            // float noise_amplitude = snoise(vec3(noise_coordinate, u_time));
+            vec3 noise_coordinate = offset * noise_fragment;
+            // float noise_amplitude = snoise(vec3(noise_coordinate));
             // v_color = vec3( noise_amplitude * 0.5 + 0.5); //  * 0.5 + 0.5 this turns the numbers from (-1, 1) to (0, 1)
 
             v_position = position;
-            vec2 offset_position = (position * radiusScale) + offset; // by timesing position by radius scale we pull in/out the corners of the square and therefore make circle bigger/smaller
+            vec3 offset_position = (vec3(position, 0.0) * radiusScale) + offset; // by timesing position by radius scale we pull in/out the corners of the square and therefore make circle bigger/smaller
 
             // snoise returns a float
             float speed = 0.1;
-            // we are using time to access different slices of the 3d noise. We times by 0.1 to slow it down.
-            // That doesnt mean its a different slice of the circles becasue we are using this for x and y offset.
-            // essentially in this case we are using snoise to get random numbers to add to the x/y offsets
-            float noise_slice = u_time * speed;
 
-            offset_position.x += snoise(vec3(noise_coordinate, noise_slice));
-            offset_position.y += snoise(vec3(noise_coordinate, -noise_slice));
 
-            gl_Position = vec4(offset_position, 0.0, 1.0);
+            offset_position.x += snoise(vec3(noise_coordinate + 0.34));
+            offset_position.y += snoise(vec3(noise_coordinate + 0.57));
+            offset_position.z += snoise(vec3(noise_coordinate + 0.987));
+
+            gl_Position = vec4(offset_position, 1.0);
             gl_Position = projection_matrix * gl_Position; // this is the gl position transformed by the mat4
         }
     `,
