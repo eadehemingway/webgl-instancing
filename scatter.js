@@ -18263,7 +18263,8 @@
 	        }
 	    },
 	    uniforms: {
-	        projection_matrix: ()=> projection_matrix
+	        projection_matrix: ()=> projection_matrix,
+	        u_time: regl.context("time")
 	    },
 	    vert: `
         precision mediump float;
@@ -18274,12 +18275,21 @@
         varying vec3 v_color;
         attribute vec2 offset;
         attribute float radiusScale;
+        uniform float u_time;
 
 
         void main(){
             v_color = color;
             v_position = position;
             vec2 offset_position = (position * radiusScale) + offset; // by timesing position by radius scale we pull in/out the corners of the square and therefore make circle bigger/smaller
+            // offset_position.x += sin(u_time + offset.y);
+            float angle = u_time + offset.y;
+            float radius = 0.1 * sin(u_time - offset.x);
+            float some_length = 0.1;
+            offset_position += vec2(
+                cos(angle) * some_length,
+                sin(angle) * some_length
+            );
             gl_Position = vec4(offset_position, 0.0, 1.0);
             gl_Position = projection_matrix * gl_Position; // this is the gl position transformed by the mat4
         }
