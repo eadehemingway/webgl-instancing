@@ -1,4 +1,5 @@
 const REGL = require("regl");
+const cube = require("./cube");
 const { mat4 } = require("gl-matrix"); // has bunch of stock standard mat's for working with matrices
 // we are using it for transformations to alter the canvas proportions so that a square is a square
 // mat4 is a matrix with 4 rows and 4 columns, (so 16 numbers) we are using a mat4 because we working with a vec4 (gl_position)
@@ -28,10 +29,12 @@ const view_matrix = mat4.create(); // for camera position
 
 const drawPoints = regl({
     instances: instances, // this says we want two instances (i.e. two circles)
+    count: cube.positions.length / 3, // we are no longer using elements so we are using count again
     attributes: {
     // attributes can be called anything, but the options they take are all the same (they have buffer and divisor). If they dont have a divisor
     // then you can do it in an array e.g. position below:
-        position: require("./cube").positions, // the corner points of the triangle of the three d cube. order of these is important!
+        position: cube.positions, // the corner points of the triangle of the three d cube. order of these is important!
+        normal: cube.normals,
         // (regular attributes have a divisor of zero, only instance attributes have a divisor of one)
         color: {
             buffer: buffer_color, // red and blue
@@ -46,7 +49,6 @@ const drawPoints = regl({
             divisor: 1
         }
     },
-    elements: require("./cube").cells,
     cull: {
         enable:false
     },
@@ -58,6 +60,8 @@ const drawPoints = regl({
     vert: `
         precision mediump float;
         attribute vec3 position;
+        attribute vec3 normal;
+        varying vec3 v_normal;
         varying vec3 v_position;
         uniform mat4 projection_matrix;
         attribute vec3 color;
@@ -71,6 +75,7 @@ const drawPoints = regl({
 
         void main(){
             v_color = color;
+            v_normal = normal;
             // // this says how broken up the noise is. The smaller this number the fewer bigger mountains there will be,
             // // the larger the number the more mountains they will be (and they will have more of a vertical drop)
             float noise_fragment = 100.0;
@@ -96,9 +101,11 @@ const drawPoints = regl({
     frag: `
         precision mediump float;
         varying vec3 v_color;
+        varying vec3 v_normal;
 
         void main(){
-            gl_FragColor = (vec4(v_color, 1.0));
+        // the  * 0.5 + 0.5 is to take it from (-1, 1) to (0, 1)
+            gl_FragColor = (vec4(v_normal * 0.5 + 0.5, 1.0));
 
         }
 

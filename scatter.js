@@ -10535,6 +10535,152 @@
 
 	}(regl$1));
 
+	var unindexMesh = unindex$1;
+
+	function unindex$1(positions, cells, out) {
+	  if (positions.positions && positions.cells) {
+	    out = cells;
+	    cells = positions.cells;
+	    positions = positions.positions;
+	  }
+
+	  var dims = positions.length ? positions[0].length : 0;
+	  var points = cells.length ? cells[0].length : 0;
+
+	  out = out || new Float32Array(cells.length * points * dims);
+
+	  if (points === 3 && dims === 2) {
+	    for (var i = 0, n = 0, l = cells.length; i < l; i += 1) {
+	      var cell = cells[i];
+	      out[n++] = positions[cell[0]][0];
+	      out[n++] = positions[cell[0]][1];
+	      out[n++] = positions[cell[1]][0];
+	      out[n++] = positions[cell[1]][1];
+	      out[n++] = positions[cell[2]][0];
+	      out[n++] = positions[cell[2]][1];
+	    }
+	  } else
+	  if (points === 3 && dims === 3) {
+	    for (var i = 0, n = 0, l = cells.length; i < l; i += 1) {
+	      var cell = cells[i];
+	      out[n++] = positions[cell[0]][0];
+	      out[n++] = positions[cell[0]][1];
+	      out[n++] = positions[cell[0]][2];
+	      out[n++] = positions[cell[1]][0];
+	      out[n++] = positions[cell[1]][1];
+	      out[n++] = positions[cell[1]][2];
+	      out[n++] = positions[cell[2]][0];
+	      out[n++] = positions[cell[2]][1];
+	      out[n++] = positions[cell[2]][2];
+	    }
+	  } else {
+	    for (var i = 0, n = 0, l = cells.length; i < l; i += 1) {
+	      var cell = cells[i];
+	      for (var c = 0; c < cell.length; c++) {
+	        var C = cell[c];
+	        for (var k = 0; k < dims; k++) {
+	          out[n++] = positions[C][k];
+	        }
+	      }
+	    }
+	  }
+
+	  return out
+	}
+
+	var faceNormals_1 = faceNormals$1;
+
+	function faceNormals$1(verts, output) {
+	  var l = verts.length;
+	  if (!output) output = new Float32Array(l);
+
+	  for (var i = 0; i < l; i += 9) {
+	    var p1x = verts[i+3] - verts[i];
+	    var p1y = verts[i+4] - verts[i+1];
+	    var p1z = verts[i+5] - verts[i+2];
+
+	    var p2x = verts[i+6] - verts[i];
+	    var p2y = verts[i+7] - verts[i+1];
+	    var p2z = verts[i+8] - verts[i+2];
+
+	    var p3x = p1y * p2z - p1z * p2y;
+	    var p3y = p1z * p2x - p1x * p2z;
+	    var p3z = p1x * p2y - p1y * p2x;
+
+	    var mag = Math.sqrt(p3x * p3x + p3y * p3y + p3z * p3z);
+	    if (mag === 0) {
+	      output[i  ] = 0;
+	      output[i+1] = 0;
+	      output[i+2] = 0;
+
+	      output[i+3] = 0;
+	      output[i+4] = 0;
+	      output[i+5] = 0;
+
+	      output[i+6] = 0;
+	      output[i+7] = 0;
+	      output[i+8] = 0;
+	    } else {
+	      p3x = p3x / mag;
+	      p3y = p3y / mag;
+	      p3z = p3z / mag;
+
+	      output[i  ] = p3x;
+	      output[i+1] = p3y;
+	      output[i+2] = p3z;
+
+	      output[i+3] = p3x;
+	      output[i+4] = p3y;
+	      output[i+5] = p3z;
+
+	      output[i+6] = p3x;
+	      output[i+7] = p3y;
+	      output[i+8] = p3z;
+	    }
+	  }
+
+	  return output
+	}
+
+	const unindex = unindexMesh;
+	const faceNormals = faceNormals_1;
+
+	const indexed_cube = {
+	    cells: [
+	        [1, 0, 2],
+	        [3, 1, 2],
+	        [4, 5, 6],
+	        [5, 7, 6],
+	        [0, 1, 5],
+	        [4, 0, 5],
+	        [1, 3, 5],
+	        [3, 7, 5],
+	        [2, 0, 4],
+	        [2, 4, 6],
+	        [2, 6, 3],
+	        [6, 7, 3]
+	    ],
+	    positions: [
+	        [0, 0, 0],
+	        [0, 0, 1],
+	        [1, 0, 0],
+	        [1, 0, 1],
+	        [0, 1, 0],
+	        [0, 1, 1],
+	        [1, 1, 0],
+	        [1, 1, 1]
+	    ]
+	};
+
+	// position without cells, unindexed, full list of triangles
+	const triangle_soup_cube = unindex(indexed_cube.positions, indexed_cube.cells);
+	const normals = faceNormals(triangle_soup_cube);
+
+	var cube$1 = {
+	    positions: triangle_soup_cube,
+	    normals: normals,
+	};
+
 	/**
 	 * Common utilities
 	 * @module glMatrix
@@ -18212,34 +18358,7 @@
 		vec4: vec4
 	});
 
-	var require$$1 = /*@__PURE__*/getAugmentedNamespace(esm);
-
-	var cube = {
-	    cells: [
-	        [1, 0, 2],
-	        [3, 1, 2],
-	        [4, 5, 6],
-	        [5, 7, 6],
-	        [0, 1, 5],
-	        [4, 0, 5],
-	        [1, 3, 5],
-	        [3, 7, 5],
-	        [2, 0, 4],
-	        [2, 4, 6],
-	        [2, 6, 3],
-	        [6, 7, 3]
-	    ],
-	    positions: [
-	        [0, 0, 0],
-	        [0, 0, 1],
-	        [1, 0, 0],
-	        [1, 0, 1],
-	        [0, 1, 0],
-	        [0, 1, 1],
-	        [1, 1, 0],
-	        [1, 1, 1]
-	    ]
-	};
+	var require$$2 = /*@__PURE__*/getAugmentedNamespace(esm);
 
 	var noise = `//
 // Description : Array and textureless GLSL 2D/3D/4D simplex
@@ -18346,7 +18465,8 @@ float snoise(vec3 v)
 `;
 
 	const REGL = regl$1.exports;
-	const { mat4 } = require$$1; // has bunch of stock standard mat's for working with matrices
+	const cube = cube$1;
+	const { mat4 } = require$$2; // has bunch of stock standard mat's for working with matrices
 	// we are using it for transformations to alter the canvas proportions so that a square is a square
 	// mat4 is a matrix with 4 rows and 4 columns, (so 16 numbers) we are using a mat4 because we working with a vec4 (gl_position)
 	// we want to transform the current gl_position into a new gl_position that is correctly proportioned.
@@ -18375,10 +18495,12 @@ float snoise(vec3 v)
 
 	const drawPoints = regl({
 	    instances: instances, // this says we want two instances (i.e. two circles)
+	    count: cube.positions.length / 3, // we are no longer using elements so we are using count again
 	    attributes: {
 	    // attributes can be called anything, but the options they take are all the same (they have buffer and divisor). If they dont have a divisor
 	    // then you can do it in an array e.g. position below:
 	        position: cube.positions, // the corner points of the triangle of the three d cube. order of these is important!
+	        normal: cube.normals,
 	        // (regular attributes have a divisor of zero, only instance attributes have a divisor of one)
 	        color: {
 	            buffer: buffer_color, // red and blue
@@ -18393,7 +18515,6 @@ float snoise(vec3 v)
 	            divisor: 1
 	        }
 	    },
-	    elements: cube.cells,
 	    cull: {
 	        enable:false
 	    },
@@ -18405,6 +18526,8 @@ float snoise(vec3 v)
 	    vert: `
         precision mediump float;
         attribute vec3 position;
+        attribute vec3 normal;
+        varying vec3 v_normal;
         varying vec3 v_position;
         uniform mat4 projection_matrix;
         attribute vec3 color;
@@ -18418,6 +18541,7 @@ float snoise(vec3 v)
 
         void main(){
             v_color = color;
+            v_normal = normal;
             // // this says how broken up the noise is. The smaller this number the fewer bigger mountains there will be,
             // // the larger the number the more mountains they will be (and they will have more of a vertical drop)
             float noise_fragment = 100.0;
@@ -18443,9 +18567,11 @@ float snoise(vec3 v)
 	    frag: `
         precision mediump float;
         varying vec3 v_color;
+        varying vec3 v_normal;
 
         void main(){
-            gl_FragColor = (vec4(v_color, 1.0));
+        // the  * 0.5 + 0.5 is to take it from (-1, 1) to (0, 1)
+            gl_FragColor = (vec4(v_normal * 0.5 + 0.5, 1.0));
 
         }
 

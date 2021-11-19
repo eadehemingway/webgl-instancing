@@ -1,4 +1,7 @@
-module.exports = {
+const unindex = require("unindex-mesh");
+const faceNormals = require("face-normals");
+
+const indexed_cube = {
     cells: [
         [1, 0, 2],
         [3, 1, 2],
@@ -23,4 +26,13 @@ module.exports = {
         [1, 1, 0],
         [1, 1, 1]
     ]
+};
+
+// position without cells, unindexed, full list of triangles
+const triangle_soup_cube = unindex(indexed_cube.positions, indexed_cube.cells);
+const normals = faceNormals(triangle_soup_cube);
+
+module.exports = {
+    positions: triangle_soup_cube,
+    normals: normals,
 };
