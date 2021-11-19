@@ -102,10 +102,16 @@ const drawPoints = regl({
         precision mediump float;
         varying vec3 v_color;
         varying vec3 v_normal;
+        uniform float u_time;
 
         void main(){
+
+            vec3 light_direction = normalize(vec3(sin(u_time), 1.0, 0.5));
+            float light_brightness = 0.5 + max(0.0, dot(light_direction, v_normal)); // dot product works how which surface and how much of it is being illuminated
+
+            vec3 surface_color = light_brightness * (v_normal * 0.5 + 0.5);
         // the  * 0.5 + 0.5 is to take it from (-1, 1) to (0, 1)
-            gl_FragColor = (vec4(v_normal * 0.5 + 0.5, 1.0));
+            gl_FragColor = (vec4(surface_color, 1.0));
 
         }
 
