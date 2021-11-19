@@ -26,6 +26,10 @@ const drawPoints = regl({
         offset: {
             buffer: [[-1, 0], [1, 0]],
             divisor: 1
+        },
+        radiusScale: {
+            buffer: [0.25, 0.4],
+            divisor: 1
         }
     },
     uniforms: {
@@ -39,12 +43,14 @@ const drawPoints = regl({
         attribute vec3 color;
         varying vec3 v_color;
         attribute vec2 offset;
+        attribute float radiusScale;
 
 
         void main(){
             v_color = color;
             v_position = position;
-            gl_Position = vec4(position + offset, 0.0, 1.0);
+            vec2 offset_position = (position * radiusScale) + offset; // by timesing position by radius scale we pull in/out the corners of the square and therefore make circle bigger/smaller
+            gl_Position = vec4(offset_position, 0.0, 1.0);
             gl_Position = projection_matrix * gl_Position; // this is the gl position transformed by the mat4
         }
     `,
@@ -57,7 +63,7 @@ const drawPoints = regl({
         void main(){
             // length(v_position) = length from origin
             float length_from_origin = length(v_position);
-            float radius = 1.0;
+            float radius = 1.0; // this just says make the circle take up the whole quad (it doesnt say how big the circle will be in pixels as that is determined by the position of the quad corners)
 
             float outside_circle = step(radius, length_from_origin); // return 1 if it is outside the circle
             float inside_circle = 1.0 - outside_circle; // will return 1.0 if it is inside the circle
