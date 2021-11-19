@@ -23,7 +23,8 @@ for (var i = 0; i < instances; i ++){
     buffer_offset.push(offset);
     buffer_radius_scale.push(rad);
 }
-const projection_matrix = mat4.create(); // this returns mat4 identity (i.e. it just returns the same thing it gets in)
+const projection_matrix = mat4.create(); // mat4.create() returns mat4 identity (i.e. it just returns the same thing it gets in)
+const view_matrix = mat4.create(); // for camera position
 
 const drawPoints = regl({
     instances: instances, // this says we want two instances (i.e. two circles)
@@ -48,6 +49,7 @@ const drawPoints = regl({
     },
     uniforms: {
         projection_matrix: ()=> projection_matrix,
+        view_matrix: ()=> view_matrix,
         u_time: regl.context("time")
     },
     vert: `
@@ -60,6 +62,7 @@ const drawPoints = regl({
         attribute vec3 offset;
         attribute float radiusScale;
         uniform float u_time;
+        uniform mat4 view_matrix;
 
         ${require("./noise")}
 
@@ -84,7 +87,7 @@ const drawPoints = regl({
             offset_position.z += snoise(vec3(noise_coordinate + 0.987));
 
             gl_Position = vec4(offset_position, 1.0);
-            gl_Position = projection_matrix * gl_Position; // this is the gl position transformed by the mat4
+            gl_Position = projection_matrix * view_matrix * gl_Position; // this is the gl position transformed by projection matrix and the view matrix
         }
     `,
     frag: `
@@ -108,8 +111,14 @@ function render(){
     // so if we need to update the transofmraiton (e.g. for screen resize) it will just do the right amount (cos its cummulative)
     mat4.scale(projection_matrix, projection_matrix, [0.5, 0.5, 1.0]); // projection_matrix is passed in twice because its both the matrix we are reading from and the one we are writing to
     const ratio = window.innerWidth/ window.innerHeight;
-    // mat4.ortho(transformation_matrix, left, right, up, down, near, far) // defining a cube for the edges of the scene
-    mat4.ortho(projection_matrix, -ratio , ratio, 1.0, -1.0, -1.0, 1.0);
+
+    const field_of_view = Math.PI/4; // 8th of a circle in radians
+    // mat4.perspective(matrix_to_alter, field_of_view, aspect_ratio, near, far);
+    mat4.perspective(projection_matrix, field_of_view, ratio, 0.01, 10.0); // adds concept of perspective (objcts getting bigger as they get closer)
+
+    mat4.identity(view_matrix);
+    mat4.rotateY(view_matrix, view_matrix, Date.now()/1000);
+
     drawPoints();
 
 }
