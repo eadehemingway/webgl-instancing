@@ -18549,8 +18549,8 @@ float snoise(vec3 v)
             // float noise_amplitude = snoise(vec3(noise_coordinate));
             // v_color = vec3( noise_amplitude * 0.5 + 0.5); //  * 0.5 + 0.5 this turns the numbers from (-1, 1) to (0, 1)
 
-            v_position = position;
             vec3 offset_position = (position * radiusScale) + offset; // by timesing position by radius scale we pull in/out the corners of the square and therefore make circle bigger/smaller
+            v_position = offset_position;
 
             // snoise returns a float
             float speed = 0.1;
@@ -18568,11 +18568,18 @@ float snoise(vec3 v)
         precision mediump float;
         varying vec3 v_color;
         varying vec3 v_normal;
+        varying vec3 v_position;
         uniform float u_time;
 
         void main(){
 
-            vec3 light_direction = normalize(vec3(sin(u_time), 1.0, 0.5));
+            vec3 light_position = 0.5 * vec3(
+                sin(u_time),
+                0.0,
+                cos(u_time)
+            );
+
+            vec3 light_direction = normalize(v_position - light_position);
             float light_brightness = 0.5 + max(0.0, dot(light_direction, v_normal)); // dot product works how which surface and how much of it is being illuminated
 
             vec3 surface_color = light_brightness * (v_normal * 0.5 + 0.5);
