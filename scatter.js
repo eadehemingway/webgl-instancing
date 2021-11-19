@@ -18214,6 +18214,33 @@
 
 	var require$$1 = /*@__PURE__*/getAugmentedNamespace(esm);
 
+	var cube = {
+	    cells: [
+	        [1, 0, 2],
+	        [3, 1, 2],
+	        [4, 5, 6],
+	        [5, 7, 6],
+	        [0, 1, 5],
+	        [4, 0, 5],
+	        [1, 3, 5],
+	        [3, 7, 5],
+	        [2, 0, 4],
+	        [2, 4, 6],
+	        [2, 6, 3],
+	        [6, 7, 3]
+	    ],
+	    positions: [
+	        [0, 0, 0],
+	        [0, 0, 1],
+	        [1, 0, 0],
+	        [1, 0, 1],
+	        [0, 1, 0],
+	        [0, 1, 1],
+	        [1, 1, 0],
+	        [1, 1, 1]
+	    ]
+	};
+
 	var noise = `//
 // Description : Array and textureless GLSL 2D/3D/4D simplex
 //               noise functions.
@@ -18348,11 +18375,10 @@ float snoise(vec3 v)
 
 	const drawPoints = regl({
 	    instances: instances, // this says we want two instances (i.e. two circles)
-	    count: 6, // amount of points we are going to draw.
 	    attributes: {
 	    // attributes can be called anything, but the options they take are all the same (they have buffer and divisor). If they dont have a divisor
 	    // then you can do it in an array e.g. position below:
-	        position: [[-1, -1], [1, -1], [1, 1], [1, 1], [-1, 1], [-1, -1]], // this is shorthand for doing an object with buffer without a divisor
+	        position: cube.positions, // the corner points of the triangle of the three d cube. order of these is important!
 	        // (regular attributes have a divisor of zero, only instance attributes have a divisor of one)
 	        color: {
 	            buffer: buffer_color, // red and blue
@@ -18367,6 +18393,10 @@ float snoise(vec3 v)
 	            divisor: 1
 	        }
 	    },
+	    elements: cube.cells,
+	    cull: {
+	        enable:false
+	    },
 	    uniforms: {
 	        projection_matrix: ()=> projection_matrix,
 	        view_matrix: ()=> view_matrix,
@@ -18374,8 +18404,8 @@ float snoise(vec3 v)
 	    },
 	    vert: `
         precision mediump float;
-        attribute vec2 position;
-        varying vec2 v_position;
+        attribute vec3 position;
+        varying vec3 v_position;
         uniform mat4 projection_matrix;
         attribute vec3 color;
         varying vec3 v_color;
@@ -18396,7 +18426,7 @@ float snoise(vec3 v)
             // v_color = vec3( noise_amplitude * 0.5 + 0.5); //  * 0.5 + 0.5 this turns the numbers from (-1, 1) to (0, 1)
 
             v_position = position;
-            vec3 offset_position = (vec3(position, 0.0) * radiusScale) + offset; // by timesing position by radius scale we pull in/out the corners of the square and therefore make circle bigger/smaller
+            vec3 offset_position = (position * radiusScale) + offset; // by timesing position by radius scale we pull in/out the corners of the square and therefore make circle bigger/smaller
 
             // snoise returns a float
             float speed = 0.1;
@@ -18437,7 +18467,7 @@ float snoise(vec3 v)
 	    mat4.perspective(projection_matrix, field_of_view, ratio, 0.01, 10.0); // adds concept of perspective (objcts getting bigger as they get closer)
 
 	    mat4.identity(view_matrix);
-	    mat4.rotateY(view_matrix, view_matrix, Date.now()/1000);
+	    mat4.rotateY(view_matrix, view_matrix, Date.now()/100000);
 
 	    drawPoints();
 

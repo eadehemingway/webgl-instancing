@@ -28,11 +28,10 @@ const view_matrix = mat4.create(); // for camera position
 
 const drawPoints = regl({
     instances: instances, // this says we want two instances (i.e. two circles)
-    count: 6, // amount of points we are going to draw.
     attributes: {
     // attributes can be called anything, but the options they take are all the same (they have buffer and divisor). If they dont have a divisor
     // then you can do it in an array e.g. position below:
-        position: [[-1, -1], [1, -1], [1, 1], [1, 1], [-1, 1], [-1, -1]], // this is shorthand for doing an object with buffer without a divisor
+        position: require("./cube").positions, // the corner points of the triangle of the three d cube. order of these is important!
         // (regular attributes have a divisor of zero, only instance attributes have a divisor of one)
         color: {
             buffer: buffer_color, // red and blue
@@ -47,6 +46,10 @@ const drawPoints = regl({
             divisor: 1
         }
     },
+    elements: require("./cube").cells,
+    cull: {
+        enable:false
+    },
     uniforms: {
         projection_matrix: ()=> projection_matrix,
         view_matrix: ()=> view_matrix,
@@ -54,8 +57,8 @@ const drawPoints = regl({
     },
     vert: `
         precision mediump float;
-        attribute vec2 position;
-        varying vec2 v_position;
+        attribute vec3 position;
+        varying vec3 v_position;
         uniform mat4 projection_matrix;
         attribute vec3 color;
         varying vec3 v_color;
@@ -76,7 +79,7 @@ const drawPoints = regl({
             // v_color = vec3( noise_amplitude * 0.5 + 0.5); //  * 0.5 + 0.5 this turns the numbers from (-1, 1) to (0, 1)
 
             v_position = position;
-            vec3 offset_position = (vec3(position, 0.0) * radiusScale) + offset; // by timesing position by radius scale we pull in/out the corners of the square and therefore make circle bigger/smaller
+            vec3 offset_position = (position * radiusScale) + offset; // by timesing position by radius scale we pull in/out the corners of the square and therefore make circle bigger/smaller
 
             // snoise returns a float
             float speed = 0.1;
@@ -117,7 +120,7 @@ function render(){
     mat4.perspective(projection_matrix, field_of_view, ratio, 0.01, 10.0); // adds concept of perspective (objcts getting bigger as they get closer)
 
     mat4.identity(view_matrix);
-    mat4.rotateY(view_matrix, view_matrix, Date.now()/1000);
+    mat4.rotateY(view_matrix, view_matrix, Date.now()/100000);
 
     drawPoints();
 
