@@ -108,24 +108,7 @@ const drawPoints = regl({
         }
 
     `,
-    depth: { // disable depth so that it works like photoshop might with layers. good to do with 2d stuff.
-        enable: false,
-        mask: false
-    },
-    blend:  { // this object is copied pasted, this sets up behaviour between
-    // source and destination colors. it makes transparency possible
-        enable: true,
-        func: {
-            srcRGB: "src alpha",
-            dstRGB: "one minus src alpha",
-            srcAlpha: "src alpha",
-            dstAlpha: "one minus src alpha"
-        },
-        equation: {
-            rgb: "add",
-            alpha: "add"
-        }
-    },
+
 
 });
 
